@@ -1,0 +1,316 @@
+@import './variables.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg);
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.highlight-purple {
+  color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.thin-divider {
+  height: 1px;
+  background-color: var(--color-divider);
+  width: 100%;
+  border: none;
+}
+
+/* ------------------------------------------------------------------
+   Utility animations
+   ------------------------------------------------------------------ */
+
+/* `Loading.tsx` has always rendered <Loader2 className="animate-spin" />, but
+   the keyframes were never defined, so the spinner sat motionless. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ------------------------------------------------------------------
+   Company logo marquee
+   ------------------------------------------------------------------ */
+
+.companies-marquee {
+  position: relative;
+  width: 100%;
+  /* Clipped here so the duplicated track can never widen the page. */
+  overflow: hidden;
+  /* Soft edges so items enter and leave instead of popping at the boundary. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.companies-marquee__track {
+  display: flex;
+  align-items: center;
+  /* width:max-content lets the track size to its contents rather than the
+     viewport, which is what makes the -50% translate land exactly on the
+     start of the duplicated half. */
+  width: max-content;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 3.5rem;
+  padding-inline: 1.75rem;
+  animation: companies-marquee-scroll var(--marquee-duration, 30s) linear infinite;
+  will-change: transform;
+}
+
+/* Pausing on hover lets a visitor actually read a name they recognise. */
+.companies-marquee:hover .companies-marquee__track {
+  animation-play-state: paused;
+}
+
+.companies-marquee__item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+
+.companies-marquee__name {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  user-select: none;
+  transition: color 0.25s ease;
+}
+
+.companies-marquee:hover .companies-marquee__name {
+  color: #94a3b8;
+}
+
+/* Constrain by height and let width follow, so logos of different aspect
+   ratios stay correctly proportioned and optically the same size. */
+.companies-marquee__logo {
+  height: 32px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  filter: grayscale(100%);
+  opacity: 0.55;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.companies-marquee:hover .companies-marquee__logo {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+@keyframes companies-marquee-scroll {
+  from { transform: translateX(0); }
+  /* Exactly half the track = the width of one full copy of the list, so the
+     loop restarts on a pixel-identical frame with no visible jump. */
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .companies-marquee__track {
+    gap: 2.25rem;
+  }
+
+  .companies-marquee__name {
+    font-size: 1.15rem;
+  }
+
+  .companies-marquee__logo {
+    height: 26px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Reduced motion
+   ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Stop the continuous scroll and show a static, centred, wrapping list
+     instead — the information is still there, the motion is not. */
+  .companies-marquee {
+    -webkit-mask-image: none;
+    mask-image: none;
+    overflow-x: auto;
+  }
+
+  .companies-marquee__track {
+    animation: none;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem 2.5rem;
+  }
+
+  /* The duplicated half is redundant without the loop. */
+  .companies-marquee__item[aria-hidden='true'] {
+    display: none;
+  }
+
+  .animate-spin {
+    animation-duration: 2s;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Site header
+   ------------------------------------------------------------------
+   Moved out of Navbar's inline styles so the nav can collapse into a
+   mobile menu. The desktop appearance is unchanged. */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.site-header__inner {
+  max-width: var(--max-width-site);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  width: 100%;
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Hidden on desktop; the media query below swaps the two. */
+.site-header__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+
+.site-header__mobile {
+  border-top: 1px solid var(--color-border-light);
+  background-color: #fff;
+  padding: 1rem var(--space-lg) 1.25rem;
+}
+
+.site-header__mobile-nav,
+.site-header__mobile-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.site-header__mobile-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Below this width the four nav links plus two auth actions no longer fit
+   beside the logo and were forcing horizontal overflow. */
+@media (max-width: 900px) {
+  .site-nav,
+  .site-header__actions {
+    display: none;
+  }
+
+  .site-header__toggle {
+    display: inline-flex;
+  }
+}

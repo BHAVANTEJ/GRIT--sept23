@@ -1,0 +1,28 @@
+/* Responsive breakpoints and utilities */
+
+@media (max-width: 1024px) {
+  :root {
+    --header-height: 72px;
+    --space-4xl: 4rem;
+    --space-3xl: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 64px;
+    --space-4xl: 3rem;
+    --space-3xl: 2.5rem;
+    --space-2xl: 2rem;
+  }
+  
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+}

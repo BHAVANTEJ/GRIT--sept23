@@ -1,0 +1,10 @@
+# SPA history fallback (Netlify / Cloudflare Pages).
+#
+# BrowserRouter puts real paths in the URL bar (/courses, /signin, /dashboard).
+# A static host asked for /courses looks for a file at that path, finds none and
+# returns its own 404 — this is why a hard refresh 404s in production while
+# in-app navigation works fine. Serving index.html for every unmatched path lets
+# React Router resolve the route on the client.
+#
+# 200 (rewrite), not 301/302: the URL must stay as typed so the router sees it.
+/*    /index.html   200
