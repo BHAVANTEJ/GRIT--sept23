@@ -1,5 +1,5 @@
 import { User, Session } from '@supabase/supabase-js';
-import { SignUpOutcome } from '../services/auth.service';
+import { SignUpOutcome, SignUpProfileData } from '../services/auth.service';
 
 export type UserRole = 'student' | 'instructor' | 'admin';
 
@@ -7,6 +7,9 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
   avatar_url?: string;
   role: UserRole;
   created_at: string;
@@ -36,10 +39,12 @@ export interface AuthContextType {
   isAdmin: boolean;
   /** True once the session exists AND the email has been confirmed. */
   isAuthenticated: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<SignUpOutcome>;
+  signUp: (email: string, password: string, profileData?: SignUpProfileData) => Promise<SignUpOutcome>;
   signIn: (email: string, password: string) => Promise<void>;
   verifyOtp: (email: string, token: string) => Promise<void>;
   resendOtp: (email: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
 }

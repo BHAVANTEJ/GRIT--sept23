@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../../components/common/Button';
 import { ErrorMessage } from '../../../components/common/ErrorMessage';
 import { AuthToggle } from './AuthToggle';
 import { OtpVerification } from './OtpVerification';
-import { Mail, Lock, User as UserIcon } from 'lucide-react';
-import { isValidEmail, isValidPassword } from '../../../utils/validators';
+import { LoginLoading } from './LoginLoading';
+import { Mail, Lock, User as UserIcon, Phone } from 'lucide-react';
+import { isValidEmail, isValidPassword, isValidPhone } from '../../../utils/validators';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -15,22 +17,57 @@ interface AuthFormProps {
 
 type Step = 'form' | 'verify';
 
+const inputWrapperStyle: React.CSSProperties = { position: 'relative' };
+const iconStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: '12px',
+  top: '50%',
+  transform: 'translateY(-50%)',
+};
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+  borderRadius: '10px',
+  border: '1px solid #CBD5E1',
+  outline: 'none',
+};
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: '#1E293B',
+  marginBottom: '0.35rem',
+};
+
 export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSuccess }) => {
   const { signIn, signUp, submitting, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>('form');
   const [pendingEmail, setPendingEmail] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setValidationError(null);
     clearError();
 
+    if (mode === 'signup' && !firstName.trim()) {
+      setValidationError('First name is required.');
+      return;
+    }
+
     if (!isValidEmail(email.trim())) {
       setValidationError('Please enter a valid email address.');
+      return;
+    }
+
+    if (mode === 'signup' && !isValidPhone(phone)) {
+      setValidationError('Please enter a valid phone number.');
       return;
     }
 
@@ -41,13 +78,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
 
     try {
       if (mode === 'signup') {
-        const outcome = await signUp(email, password, fullName);
+        const outcome = await signUp(email, password, {
+          firstName,
+          lastName,
+          phone,
+        });
 
         if (outcome.status === 'needs_verification') {
-          // Supabase requires email confirmation: move to the OTP step instead
-          // of pretending the account is ready. The previous version navigated
-          // straight to /dashboard here even though no session existed, which is
-          // why the navbar kept showing "Sign in" after registering.
+          // Supabase requires email confirmation: move to the verification step
+          // instead of pretending the account is ready.
           setPendingEmail(outcome.email);
           setStep('verify');
           return;
@@ -61,8 +100,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
       }
     } catch (err: any) {
       // A verified-email problem is not a credentials problem: send the user to
-      // the OTP screen so they can finish confirming instead of retyping a
-      // password that was correct all along.
+      // the verification screen so they can finish confirming instead of
+      // retyping a password that was correct all along.
       if (err?.kind === 'email_not_confirmed') {
         setPendingEmail(email.trim().toLowerCase());
         setStep('verify');
@@ -84,6 +123,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
     );
   }
 
+  if (mode === 'login' && submitting) {
+    return <LoginLoading />;
+  }
+
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {(validationError || error) && (
@@ -91,36 +134,67 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
       )}
 
       {mode === 'signup' && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <label style={labelStyle}>First Name *</label>
+            <div style={inputWrapperStyle}>
+              <UserIcon size={18} color="#94A3B8" style={iconStyle} />
+              <input
+                type="text"
+                placeholder="Jane"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+                required
+                style={inputStyle}
+              />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Last Name</label>
+            <div style={inputWrapperStyle}>
+              <UserIcon size={18} color="#94A3B8" style={iconStyle} />
+              <input
+                type="text"
+                placeholder="Doe"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mode === 'signup' && (
         <div>
-          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-            Full Name
-          </label>
-          <div style={{ position: 'relative' }}>
-            <UserIcon size={18} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <label style={labelStyle}>Phone Number *</label>
+          <div style={inputWrapperStyle}>
+            <Phone size={18} color="#94A3B8" style={iconStyle} />
             <input
-              type="text"
-              placeholder="Jane Doe"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              autoComplete="name"
-              style={{
-                width: '100%',
-                padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                borderRadius: '10px',
-                border: '1px solid #CBD5E1',
-                outline: 'none',
-              }}
+              type="tel"
+              placeholder="+1 234 567 8900"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+              required
+              style={inputStyle}
             />
           </div>
         </div>
       )}
 
       <div>
-        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-          Email Address
-        </label>
-        <div style={{ position: 'relative' }}>
-          <Mail size={18} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+        <label style={labelStyle}>Email Address *</label>
+        <div style={inputWrapperStyle}>
+          <Mail size={18} color="#94A3B8" style={iconStyle} />
           <input
             type="email"
             placeholder="you@example.com"
@@ -128,23 +202,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            style={{
-              width: '100%',
-              padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-              borderRadius: '10px',
-              border: '1px solid #CBD5E1',
-              outline: 'none',
-            }}
+            style={inputStyle}
           />
         </div>
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-          Password
-        </label>
-        <div style={{ position: 'relative' }}>
-          <Lock size={18} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+        <label style={labelStyle}>Password *</label>
+        <div style={inputWrapperStyle}>
+          <Lock size={18} color="#94A3B8" style={iconStyle} />
           <input
             type="password"
             placeholder="••••••••"
@@ -152,19 +218,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onToggleMode, onSucces
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            style={{
-              width: '100%',
-              padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-              borderRadius: '10px',
-              border: '1px solid #CBD5E1',
-              outline: 'none',
-            }}
+            style={inputStyle}
           />
         </div>
+        {mode === 'login' && (
+          <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+            <Link
+              to="/forgot-password"
+              style={{ fontSize: '0.85rem', color: '#6366F1', fontWeight: 600, textDecoration: 'none' }}
+            >
+              Forgot Password?
+            </Link>
+          </div>
+        )}
       </div>
 
       <Button type="submit" variant="primary" size="lg" fullWidth disabled={submitting} style={{ marginTop: '0.5rem' }}>
-        {submitting ? 'Processing...' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+        {submitting ? 'Processing...' : mode === 'signup' ? 'Create Account' : 'Login'}
       </Button>
 
       <AuthToggle mode={mode} onToggle={onToggleMode} />

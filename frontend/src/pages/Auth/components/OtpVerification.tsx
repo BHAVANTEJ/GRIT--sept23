@@ -155,9 +155,11 @@ export const OtpVerification: React.FC<OtpVerificationProps> = ({
           Verify your email
         </h3>
         <p style={{ color: '#64748B', fontSize: '0.925rem', lineHeight: 1.55 }}>
-          Enter the 6-digit code sent to
+          Registration successful. We&apos;ve sent a confirmation link and a 6-digit code to
           <br />
           <strong style={{ color: '#0F172A' }}>{email}</strong>
+          <br />
+          Click the link in your email, or enter the code below, to verify your account.
         </p>
       </div>
 

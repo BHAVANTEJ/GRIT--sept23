@@ -17,7 +17,7 @@ export const Login: React.FC = () => {
     <MainLayout>
       <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem' }}>
         <AuthHeader
-          title={mode === 'login' ? 'Sign In to GRIT SCHOOL' : 'Create Your Account'}
+          title={mode === 'login' ? 'Login to GRIT SCHOOL' : 'Create Your Account'}
           subtitle={mode === 'login' ? 'Welcome back! Enter your credentials to access your courses.' : 'Join thousands of engineers building high-impact skills.'}
         />
         <AuthForm

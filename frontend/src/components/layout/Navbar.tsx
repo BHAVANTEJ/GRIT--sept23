@@ -24,8 +24,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onSignInClick }) => {
 
   const navLinks = [
     { label: 'Home', path: '/' },
-    { label: 'Courses', path: '/courses' },
-    { label: 'Outcomes', path: '/outcomes' },
     { label: 'About', path: '/about' },
   ];
 
@@ -125,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSignInClick }) => {
             whiteSpace: 'nowrap',
           }}
         >
-          Sign in
+          Login
         </button>
       ) : (
         <Link
@@ -140,12 +138,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onSignInClick }) => {
             whiteSpace: 'nowrap',
           }}
         >
-          Sign in
+          Login
         </Link>
       )}
       <Link to="/register" onClick={() => setMenuOpen(false)}>
         <Button variant="primary" size="md">
-          Get Started →
+          Register
         </Button>
       </Link>
     </>

@@ -12,7 +12,7 @@ export const Signup: React.FC = () => {
     <MainLayout>
       <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem' }}>
         <AuthHeader
-          title={mode === 'signup' ? 'Join GRIT SCHOOL' : 'Sign In to GRIT SCHOOL'}
+          title={mode === 'signup' ? 'Join GRIT SCHOOL' : 'Login to GRIT SCHOOL'}
           subtitle={mode === 'signup' ? 'Start your high-performance engineering journey today.' : 'Welcome back! Enter your credentials to access your courses.'}
         />
         <AuthForm

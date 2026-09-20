@@ -16,6 +16,7 @@ Execute the SQL scripts in order using the Supabase SQL Editor or the SQL CLI:
 8. `migrations/008_create_companies.sql` — landing-page marquee data
 9. `migrations/009_create_cohorts.sql` — cohort schedule; seeds the October 2026 cohort the countdown targets
 10. `migrations/010_admin_role_support.sql` — `is_admin()`, admin stats/users RPCs, **and the privilege-escalation fix on `profiles`**
+11. `migrations/011_add_registration_fields.sql` — adds `first_name`, `last_name`, `phone` to `profiles` and updates `handle_new_user()` to populate them from sign-up metadata
 
 ## RLS Policies
 

@@ -16,25 +16,42 @@ export type SignUpOutcome =
   | { status: 'needs_verification'; email: string }
   | { status: 'active_session'; email: string };
 
+export interface SignUpProfileData {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+}
+
 export const authService = {
   /**
-   * Registers the user and lets Supabase issue the confirmation OTP.
+   * Registers the user and lets Supabase issue the confirmation email.
    *
-   * We deliberately do NOT pass `emailRedirectTo`. Supabase's confirmation
-   * email can carry both `{{ .Token }}` (the 6-digit OTP) and
-   * `{{ .ConfirmationURL }}` (a magic link); omitting the redirect keeps this
-   * an OTP-first flow rather than a link-first one.
+   * The confirmation email carries both `{{ .Token }}` (the 6-digit OTP shown
+   * in `OtpVerification`) and `{{ .ConfirmationURL }}` (a magic link handled
+   * by `AuthCallback`) — the user can use either one to confirm.
    */
-  signUp: async (email: string, password: string, fullName?: string): Promise<SignUpOutcome> => {
+  signUp: async (
+    email: string,
+    password: string,
+    profileData?: SignUpProfileData
+  ): Promise<SignUpOutcome> => {
     const normalized = normalizeEmail(email);
+    const firstName = profileData?.firstName?.trim() || '';
+    const lastName = profileData?.lastName?.trim() || '';
+    const phone = profileData?.phone?.trim() || '';
+    const fullName = [firstName, lastName].filter(Boolean).join(' ');
 
     const { data, error } = await supabase.auth.signUp({
       email: normalized,
       password,
       options: {
         data: {
-          full_name: fullName?.trim() || '',
+          full_name: fullName,
+          first_name: firstName,
+          last_name: lastName,
+          phone,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -146,5 +163,27 @@ export const authService = {
       throw error;
     }
     return user;
+  },
+
+  /** Sends a password-recovery email containing a link into `/reset-password`. */
+  resetPasswordForEmail: async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      const friendly = handleAuthError('resetPasswordForEmail', error);
+      throw Object.assign(new Error(friendly.message), { kind: friendly.kind, cause: error });
+    }
+  },
+
+  /** Sets a new password on the session established by the recovery link. */
+  updatePassword: async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      const friendly = handleAuthError('updatePassword', error);
+      throw Object.assign(new Error(friendly.message), { kind: friendly.kind, cause: error });
+    }
   },
 };

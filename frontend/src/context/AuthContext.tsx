@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { AuthContextType, UserProfile } from '../types/auth.types';
-import { authService, SignUpOutcome } from '../services/auth.service';
+import { authService, SignUpOutcome, SignUpProfileData } from '../services/auth.service';
 import { profileService } from '../services/profile.service';
 import { supabase } from '../lib/supabase';
 
@@ -100,11 +100,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = useCallback(
-    async (email: string, password: string, fullName?: string): Promise<SignUpOutcome> => {
+    async (email: string, password: string, profileData?: SignUpProfileData): Promise<SignUpOutcome> => {
       setSubmitting(true);
       setError(null);
       try {
-        return await authService.signUp(email, password, fullName);
+        return await authService.signUp(email, password, profileData);
       } catch (err: any) {
         setError(err?.message || 'Unable to create account.');
         throw err;
@@ -160,6 +160,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const sendPasswordReset = useCallback(async (email: string) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await authService.resetPasswordForEmail(email);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to send password reset email.');
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await authService.updatePassword(newPassword);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to update password.');
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     setSubmitting(true);
     setError(null);
@@ -193,6 +219,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       verifyOtp,
       resendOtp,
+      sendPasswordReset,
+      updatePassword,
       signOut,
       clearError,
     }),
@@ -208,6 +236,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       verifyOtp,
       resendOtp,
+      sendPasswordReset,
+      updatePassword,
       signOut,
       clearError,
     ]

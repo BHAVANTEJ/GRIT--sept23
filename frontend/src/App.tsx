@@ -10,6 +10,8 @@ import { Dashboard } from './pages/Dashboard/Dashboard';
 import { Login } from './pages/Auth/Login';
 import { Signup } from './pages/Auth/Signup';
 import { AuthCallback } from './pages/Auth/AuthCallback';
+import { ForgotPassword } from './pages/Auth/ForgotPassword';
+import { ResetPassword } from './pages/Auth/ResetPassword';
 import { Profile } from './pages/Profile/Profile';
 import { Outcomes } from './pages/Outcomes/Outcomes';
 import { Intro } from './pages/Intro/Intro';
@@ -61,6 +63,8 @@ const App: React.FC = () => (
       />
       {/* Supabase email links land here (OTP is the primary flow). */}
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* ---- Authenticated ---- */}
       <Route

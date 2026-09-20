@@ -21,7 +21,7 @@ export const AuthToggle: React.FC<AuthToggleProps> = ({ mode, onToggle }) => {
           padding: 0,
         }}
       >
-        {mode === 'signup' ? 'Sign in' : 'Create Account'}
+        {mode === 'signup' ? 'Login' : 'Create Account'}
       </button>
     </div>
   );
